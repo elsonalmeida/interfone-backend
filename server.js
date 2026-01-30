@@ -5,7 +5,7 @@ const express = require("express");
 const { Client, LocalAuth } = require("whatsapp-web.js");
 const qrcode = require("qrcode-terminal");
 const fs = require("fs");
-const puppeteer = require("puppeteer");
+const puppeteer = require("puppeteer-extra");
 
 const app = express();
 app.use(express.json());
@@ -65,6 +65,7 @@ app.listen(port, () => console.log(`Servidor rodando na porta ${port}`));
 client.initialize().catch(err => {
   console.error("Erro ao iniciar WhatsApp:", err);
 });
+
 
 
 
