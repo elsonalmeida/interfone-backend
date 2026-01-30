@@ -25,6 +25,25 @@ const client = new Client({
   }
 });
 
+client.initialize();
+
+// rota para enviar mensagem
+app.post("/send", async (req, res) => {
+  const { number, message } = req.body;
+  try {
+    const chatId = number + "@c.us"; // formato usado pelo WhatsApp
+    await client.sendMessage(chatId, message);
+    res.json({ status: "success", number, message });
+  } catch (err) {
+    console.error("Erro ao enviar mensagem:", err);
+    res.status(500).json({ status: "error", error: err.message });
+  }
+});
+
+app.listen(10000, () => {
+  console.log("Servidor rodando na porta 10000");
+});
+
 // Eventos do WhatsApp
 client.on("qr", qr => {
   qrcode.generate(qr, { small: true });
@@ -67,6 +86,7 @@ app.listen(port, () => console.log(`Servidor rodando na porta ${port}`));
 client.initialize().catch(err => {
   console.error("Erro ao iniciar WhatsApp:", err);
 });
+
 
 
 
