@@ -3,11 +3,38 @@
 
 const express = require("express");
 const { Client, LocalAuth } = require("whatsapp-web.js");
-const qrcode = require("qrcode-terminal");
 const fs = require("fs");
 const puppeteer = require("puppeteer");
 const chromium = require("chromium");
 
+const QRCode = require("qrcode");
+
+let currentQr = null;
+
+client.on("qr", (qr) => {
+  currentQr = qr;
+  console.log("QR Code recebido");
+});
+
+app.get("/qrcode", async (req, res) => {
+  if (!currentQr) {
+    return res.status(404).send("QR Code não disponível");
+  }
+
+  try {
+    const qrImage = await QRCode.toDataURL(currentQr);
+    res.send(`
+      <html>
+        <body>
+          <h2>Escaneie o QR Code abaixo com o WhatsApp</h2>
+          <img src="${qrImage}" />
+        </body>
+      </html>
+    `);
+  } catch (err) {
+    res.status(500).send("Erro ao gerar QR Code");
+  }
+});
 
 const app = express();
 app.use(express.json());
@@ -86,6 +113,7 @@ app.listen(port, () => console.log(`Servidor rodando na porta ${port}`));
 client.initialize().catch(err => {
   console.error("Erro ao iniciar WhatsApp:", err);
 });
+
 
 
 
