@@ -32,7 +32,12 @@ client.on("ready", () => {
 // Rota chamada pelo HTML
 app.post("/chamar/:apto", async (req, res) => {
   const apto = req.params.apto;
+
+  console.log("Moradores disponíveis:", moradores);
+  console.log("Apartamento solicitado:", apto);
+
   const numeroMorador = moradores[apto];
+  console.log("Número encontrado:", numeroMorador);
 
   if (!numeroMorador) {
     return res.status(404).send("Apartamento não encontrado");
@@ -57,3 +62,4 @@ app.listen(port, () => console.log(`Servidor rodando na porta ${port}`));
 client.initialize().catch(err => {
   console.error("Erro ao iniciar WhatsApp:", err);
 });
+
