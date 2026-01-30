@@ -3,8 +3,8 @@ services:
     name: interfone-backend
     env: node
     buildCommand: |
+      bash install-chrome.sh
       npm install
-      npx puppeteer install
     startCommand: node server.js
     envVars:
       - key: NODE_ENV
