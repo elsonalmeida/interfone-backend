@@ -1,4 +1,5 @@
 // Forçando redeploy no Render
+//
 
 const express = require("express");
 const { Client, LocalAuth } = require("whatsapp-web.js");
@@ -63,6 +64,7 @@ app.listen(port, () => console.log(`Servidor rodando na porta ${port}`));
 client.initialize().catch(err => {
   console.error("Erro ao iniciar WhatsApp:", err);
 });
+
 
 
 
