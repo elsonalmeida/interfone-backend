@@ -1,38 +1,33 @@
 const express = require("express");
 const { Client, LocalAuth } = require("whatsapp-web.js");
-const fs = require("fs");
-const puppeteer = require("puppeteer");
-const chromium = require("chromium");
 const QRCode = require("qrcode");
+const fs = require("fs");
 
 const app = express();
 app.use(express.json());
-
-let currentQr = null;
 
 // Carrega lista de moradores
 const moradores = JSON.parse(fs.readFileSync("moradores.json", "utf8"));
 
 // Configura cliente WhatsApp
 const client = new Client({
-  authStrategy: new LocalAuth(),
-  puppeteer: {
-    executablePath: chromium.path,
-    headless: true,
-    args: ["--no-sandbox", "--disable-setuid-sandbox"]
-  }
+  authStrategy: new LocalAuth()
 });
 
-// Eventos do WhatsApp
+let currentQr = null;
+
+// Evento para capturar QR Code
 client.on("qr", (qr) => {
   currentQr = qr;
   console.log("QR Code recebido");
 });
 
+// Evento quando o WhatsApp estiver pronto
 client.on("ready", () => {
   console.log("WhatsApp conectado!");
 });
 
+// Inicializa cliente
 client.initialize().catch(err => {
   console.error("Erro ao iniciar WhatsApp:", err);
 });
@@ -74,12 +69,7 @@ app.post("/send", async (req, res) => {
 // Rota chamada pelo HTML
 app.post("/chamar/:apto", async (req, res) => {
   const apto = req.params.apto;
-
-  console.log("Moradores disponíveis:", moradores);
-  console.log("Apartamento solicitado:", apto);
-
   const numeroMorador = moradores[apto];
-  console.log("Número encontrado:", numeroMorador);
 
   if (!numeroMorador) {
     return res.status(404).send("Apartamento não encontrado");
