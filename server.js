@@ -1,30 +1,26 @@
-const puppeteer = require('puppeteer');
-const { Client } = require('whatsapp-web.js');
-
-const client = new Client({
-  puppeteer: {
-    executablePath: puppeteer.executablePath(), // usa o Chrome baixado
-    headless: true,
-    args: ['--no-sandbox', '--disable-setuid-sandbox']
-  }
-});
-
-
-
-
 const express = require("express");
+const { Client, LocalAuth } = require("whatsapp-web.js");
 const qrcode = require("qrcode-terminal");
 const fs = require("fs");
+const puppeteer = require("puppeteer");
 
 const app = express();
 app.use(express.json());
 
+// Carrega lista de moradores
 const moradores = JSON.parse(fs.readFileSync("moradores.json", "utf8"));
 
+// Configura cliente WhatsApp
 const client = new Client({
-  authStrategy: new LocalAuth()
+  authStrategy: new LocalAuth(),
+  puppeteer: {
+    executablePath: puppeteer.executablePath(),
+    headless: true,
+    args: ["--no-sandbox", "--disable-setuid-sandbox"]
+  }
 });
 
+// Eventos do WhatsApp
 client.on("qr", qr => {
   qrcode.generate(qr, { small: true });
 });
@@ -48,6 +44,16 @@ app.post("/chamar/:apto", async (req, res) => {
   res.send("Mensagem enviada");
 });
 
-app.listen(3000, () => console.log("Servidor rodando na porta 3000"));
+// Rota de teste
+app.get("/", (req, res) => {
+  res.send("Interfone coletivo rodando!");
+});
 
-client.initialize();
+// Porta dinâmica para Render
+const port = process.env.PORT || 3000;
+app.listen(port, () => console.log(`Servidor rodando na porta ${port}`));
+
+// Inicializa WhatsApp
+client.initialize().catch(err => {
+  console.error("Erro ao iniciar WhatsApp:", err);
+});
