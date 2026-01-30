@@ -14,10 +14,11 @@
   <script>
     function chamar(apto) {
       // Faz requisição para o backend
-      fetch("https://interfone.onrender.com/chamar/101", { method: "POST" })
+      fetch("https://interfone-backend.onrender.com/chamar/101", { method: "POST" })
         .then(() => alert(`Chamando o morador do apto ${apto}...`))
         .catch(err => alert("Erro ao chamar morador"));
     }
   </script>
 </body>
+
 </html>
