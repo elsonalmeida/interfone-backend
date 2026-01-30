@@ -1,21 +1,43 @@
-// Forçando redeploy no Render
-//
-
 const express = require("express");
 const { Client, LocalAuth } = require("whatsapp-web.js");
 const fs = require("fs");
 const puppeteer = require("puppeteer");
 const chromium = require("chromium");
-
 const QRCode = require("qrcode");
+
+const app = express();
+app.use(express.json());
 
 let currentQr = null;
 
+// Carrega lista de moradores
+const moradores = JSON.parse(fs.readFileSync("moradores.json", "utf8"));
+
+// Configura cliente WhatsApp
+const client = new Client({
+  authStrategy: new LocalAuth(),
+  puppeteer: {
+    executablePath: chromium.path,
+    headless: true,
+    args: ["--no-sandbox", "--disable-setuid-sandbox"]
+  }
+});
+
+// Eventos do WhatsApp
 client.on("qr", (qr) => {
   currentQr = qr;
   console.log("QR Code recebido");
 });
 
+client.on("ready", () => {
+  console.log("WhatsApp conectado!");
+});
+
+client.initialize().catch(err => {
+  console.error("Erro ao iniciar WhatsApp:", err);
+});
+
+// Rota para exibir QR Code como imagem
 app.get("/qrcode", async (req, res) => {
   if (!currentQr) {
     return res.status(404).send("QR Code não disponível");
@@ -36,48 +58,17 @@ app.get("/qrcode", async (req, res) => {
   }
 });
 
-const app = express();
-app.use(express.json());
-
-// Carrega lista de moradores
-const moradores = JSON.parse(fs.readFileSync("moradores.json", "utf8"));
-
-// Configura cliente WhatsApp
-const client = new Client({
-  authStrategy: new LocalAuth(),
-  puppeteer: {
-    executablePath: chromium.path,
-     headless: true,
-    args: ["--no-sandbox", "--disable-setuid-sandbox"]
-  }
-});
-
-client.initialize();
-
-// rota para enviar mensagem
+// Rota para enviar mensagem
 app.post("/send", async (req, res) => {
   const { number, message } = req.body;
   try {
-    const chatId = number + "@c.us"; // formato usado pelo WhatsApp
+    const chatId = number + "@c.us";
     await client.sendMessage(chatId, message);
     res.json({ status: "success", number, message });
   } catch (err) {
     console.error("Erro ao enviar mensagem:", err);
     res.status(500).json({ status: "error", error: err.message });
   }
-});
-
-app.listen(10000, () => {
-  console.log("Servidor rodando na porta 10000");
-});
-
-// Eventos do WhatsApp
-client.on("qr", qr => {
-  qrcode.generate(qr, { small: true });
-});
-
-client.on("ready", () => {
-  console.log("WhatsApp conectado!");
 });
 
 // Rota chamada pelo HTML
@@ -108,20 +99,3 @@ app.get("/", (req, res) => {
 // Porta dinâmica para Render
 const port = process.env.PORT || 3000;
 app.listen(port, () => console.log(`Servidor rodando na porta ${port}`));
-
-// Inicializa WhatsApp
-client.initialize().catch(err => {
-  console.error("Erro ao iniciar WhatsApp:", err);
-});
-
-
-
-
-
-
-
-
-
-
-
-
