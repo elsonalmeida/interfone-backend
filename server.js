@@ -5,7 +5,7 @@ const express = require("express");
 const { Client, LocalAuth } = require("whatsapp-web.js");
 const qrcode = require("qrcode-terminal");
 const fs = require("fs");
-const puppeteer = require("puppeteer-extra");
+const puppeteer = require("puppeteer");
 
 const app = express();
 app.use(express.json());
@@ -17,6 +17,7 @@ const moradores = JSON.parse(fs.readFileSync("moradores.json", "utf8"));
 const client = new Client({
   authStrategy: new LocalAuth(),
   puppeteer: {
+     executablePath: puppeteer.executablePath(),
      headless: true,
     args: ["--no-sandbox", "--disable-setuid-sandbox"]
   }
@@ -64,6 +65,7 @@ app.listen(port, () => console.log(`Servidor rodando na porta ${port}`));
 client.initialize().catch(err => {
   console.error("Erro ao iniciar WhatsApp:", err);
 });
+
 
 
 
