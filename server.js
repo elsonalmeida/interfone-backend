@@ -17,7 +17,6 @@ const moradores = JSON.parse(fs.readFileSync("moradores.json", "utf8"));
 const client = new Client({
   authStrategy: new LocalAuth(),
   puppeteer: {
-    executablePath: puppeteer.executablePath(),
      headless: true,
     args: ["--no-sandbox", "--disable-setuid-sandbox"]
   }
@@ -65,6 +64,7 @@ app.listen(port, () => console.log(`Servidor rodando na porta ${port}`));
 client.initialize().catch(err => {
   console.error("Erro ao iniciar WhatsApp:", err);
 });
+
 
 
 
