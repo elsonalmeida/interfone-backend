@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Interfone Coletivo</title>
+</head>
+<body>
+  <h2>Selecione o apartamento</h2>
+  <button onclick="chamar('101')">Apartamento 101 - Gabriel</button>
+  <button onclick="chamar('102')">Apartamento 102 - Sthefany</button>
+  <button onclick="chamar('103')">Apartamento 103 - Giovanne</button>
+
+  <script>
+    function chamar(apto) {
+      // Faz requisição para o backend
+      fetch("https://interfone.onrender.com/chamar/101", { method: "POST" })
+        .then(() => alert(`Chamando o morador do apto ${apto}...`))
+        .catch(err => alert("Erro ao chamar morador"));
+    }
+  </script>
+</body>
+</html>
