@@ -1,5 +1,18 @@
+const puppeteer = require('puppeteer');
+const { Client } = require('whatsapp-web.js');
+
+const client = new Client({
+  puppeteer: {
+    executablePath: puppeteer.executablePath(), // usa o Chrome baixado
+    headless: true,
+    args: ['--no-sandbox', '--disable-setuid-sandbox']
+  }
+});
+
+
+
+
 const express = require("express");
-const { Client, LocalAuth } = require("whatsapp-web.js");
 const qrcode = require("qrcode-terminal");
 const fs = require("fs");
 
@@ -36,4 +49,5 @@ app.post("/chamar/:apto", async (req, res) => {
 });
 
 app.listen(3000, () => console.log("Servidor rodando na porta 3000"));
+
 client.initialize();
