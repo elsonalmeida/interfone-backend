@@ -10,8 +10,15 @@ app.use(express.json());
 const moradores = JSON.parse(fs.readFileSync("moradores.json", "utf8"));
 
 // Configura cliente WhatsApp
+const puppeteer = require("puppeteer");
+
 const client = new Client({
-  authStrategy: new LocalAuth()
+  authStrategy: new LocalAuth(),
+  puppeteer: {
+    executablePath: puppeteer.executablePath(),
+    headless: true,
+    args: ["--no-sandbox", "--disable-setuid-sandbox"]
+  }
 });
 
 let currentQr = null;
@@ -89,3 +96,4 @@ app.get("/", (req, res) => {
 // Porta dinâmica para Render
 const port = process.env.PORT || 3000;
 app.listen(port, () => console.log(`Servidor rodando na porta ${port}`));
+
