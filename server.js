@@ -7,8 +7,10 @@ const chromium = require("chromium");
 const app = express();
 app.use(express.json());
 
+// Carrega lista de moradores
 const moradores = JSON.parse(fs.readFileSync("moradores.json", "utf8"));
 
+// Configura cliente WhatsApp usando chromium.path
 const client = new Client({
   authStrategy: new LocalAuth(),
   puppeteer: {
@@ -19,25 +21,40 @@ const client = new Client({
 });
 
 let currentQr = null;
+let logs = [];
 
+// Função auxiliar para registrar logs
+function addLog(message) {
+  const timestamp = new Date().toISOString();
+  const entry = `[${timestamp}] ${message}`;
+  logs.push(entry);
+  console.log(entry);
+  if (logs.length > 50) logs.shift(); // mantém últimos 50
+}
+
+// Eventos principais
 client.on("qr", (qr) => {
   currentQr = qr;
-  console.log("QR Code recebido");
+  addLog("QR Code recebido - acesse /qrcode para escanear");
 });
 
 client.on("ready", () => {
-  console.log("WhatsApp conectado!");
+  addLog("WhatsApp conectado e pronto!");
+});
+
+client.on("disconnected", (reason) => {
+  addLog(`WhatsApp desconectado: ${reason}`);
 });
 
 client.initialize().catch(err => {
-  console.error("Erro ao iniciar WhatsApp:", err);
+  addLog("Erro ao iniciar WhatsApp: " + err.message);
 });
 
+// Rotas
 app.get("/qrcode", async (req, res) => {
   if (!currentQr) {
     return res.status(404).send("QR Code não disponível");
   }
-
   try {
     const qrImage = await QRCode.toDataURL(currentQr);
     res.send(`
@@ -55,18 +72,17 @@ app.get("/qrcode", async (req, res) => {
 
 app.post("/send", async (req, res) => {
   const { number, message } = req.body;
-
   try {
     const state = await client.getState();
     if (state !== "CONNECTED") {
       return res.status(503).json({ status: "error", error: `WhatsApp não está conectado (estado: ${state})` });
     }
-
     const chatId = number + "@c.us";
     await client.sendMessage(chatId, message);
+    addLog(`Mensagem enviada para ${number}: ${message}`);
     res.json({ status: "success", number, message });
   } catch (err) {
-    console.error("Erro ao enviar mensagem:", err);
+    addLog("Erro ao enviar mensagem: " + err.message);
     res.status(500).json({ status: "error", error: err.message });
   }
 });
@@ -74,22 +90,20 @@ app.post("/send", async (req, res) => {
 app.post("/chamar/:apto", async (req, res) => {
   const apto = req.params.apto;
   const numeroMorador = moradores[apto];
-
   if (!numeroMorador) {
     return res.status(404).send("Apartamento não encontrado");
   }
-
   try {
     const state = await client.getState();
     if (state !== "CONNECTED") {
       return res.status(503).send(`WhatsApp não está conectado (estado: ${state})`);
     }
-
     const mensagem = `Olá, tem alguém no portão para o apartamento ${apto}`;
     await client.sendMessage(numeroMorador, mensagem);
-
+    addLog(`Mensagem enviada para apto ${apto}: ${mensagem}`);
     res.send("Mensagem enviada");
   } catch (err) {
+    addLog("Erro ao enviar mensagem: " + err.message);
     res.status(500).send("Erro ao enviar mensagem");
   }
 });
@@ -116,15 +130,16 @@ app.get("/state", async (req, res) => {
   }
 });
 
-// 🔄 Rota para reiniciar o cliente WhatsApp
-app.get("/restart", async (req, res) => {
-  try {
-    await client.destroy();
-    await client.initialize();
-    res.send("🔁 Cliente WhatsApp reiniciado com sucesso");
-  } catch (err) {
-    res.status(500).send("Erro ao reiniciar cliente");
-  }
+// 🔎 Nova rota para visualizar logs
+app.get("/logs", (req, res) => {
+  res.send(`
+    <html>
+      <body>
+        <h2>Logs do WhatsApp</h2>
+        <pre>${logs.join("\n")}</pre>
+      </body>
+    </html>
+  `);
 });
 
 app.get("/", (req, res) => {
@@ -132,4 +147,4 @@ app.get("/", (req, res) => {
 });
 
 const port = process.env.PORT || 3000;
-app.listen(port, () => console.log(`Servidor rodando na porta ${port}`));
+app.listen(port, () => addLog(`Servidor rodando na porta ${port}`));
