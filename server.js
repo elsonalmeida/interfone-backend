@@ -2,6 +2,7 @@ const express = require("express");
 const { Client, LocalAuth } = require("whatsapp-web.js");
 const QRCode = require("qrcode");
 const fs = require("fs");
+const chromium = require("chromium");
 
 const app = express();
 app.use(express.json());
@@ -9,13 +10,11 @@ app.use(express.json());
 // Carrega lista de moradores
 const moradores = JSON.parse(fs.readFileSync("moradores.json", "utf8"));
 
-// Configura cliente WhatsApp
-const puppeteer = require("puppeteer");
-
+// Configura cliente WhatsApp usando chromium.path
 const client = new Client({
   authStrategy: new LocalAuth(),
   puppeteer: {
-    executablePath: puppeteer.executablePath(),
+    executablePath: chromium.path,
     headless: true,
     args: ["--no-sandbox", "--disable-setuid-sandbox"]
   }
@@ -96,4 +95,3 @@ app.get("/", (req, res) => {
 // Porta dinâmica para Render
 const port = process.env.PORT || 3000;
 app.listen(port, () => console.log(`Servidor rodando na porta ${port}`));
-
