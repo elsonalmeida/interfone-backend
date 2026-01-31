@@ -10,9 +10,6 @@ app.use(express.json());
 // Carrega lista de moradores
 const moradores = JSON.parse(fs.readFileSync("moradores.json", "utf8"));
 
-// Variável de controle de status
-let whatsappReady = false;
-
 // Configura cliente WhatsApp usando chromium.path
 const client = new Client({
   authStrategy: new LocalAuth(),
@@ -33,7 +30,6 @@ client.on("qr", (qr) => {
 
 // Evento quando o WhatsApp estiver pronto
 client.on("ready", () => {
-  whatsappReady = true;
   console.log("WhatsApp conectado!");
 });
 
@@ -67,7 +63,7 @@ app.get("/qrcode", async (req, res) => {
 app.post("/send", async (req, res) => {
   const { number, message } = req.body;
 
-  if (!whatsappReady) {
+  if (!client.info || !client.info.wid) {
     return res.status(503).json({ status: "error", error: "WhatsApp ainda não está conectado" });
   }
 
@@ -90,7 +86,7 @@ app.post("/chamar/:apto", async (req, res) => {
     return res.status(404).send("Apartamento não encontrado");
   }
 
-  if (!whatsappReady) {
+  if (!client.info || !client.info.wid) {
     return res.status(503).send("WhatsApp ainda não está conectado");
   }
 
@@ -102,7 +98,7 @@ app.post("/chamar/:apto", async (req, res) => {
 
 // Rota de status
 app.get("/status", (req, res) => {
-  if (whatsappReady) {
+  if (client.info && client.info.wid) {
     res.send("✅ WhatsApp está conectado e pronto para enviar mensagens");
   } else {
     res.send("❌ WhatsApp ainda não está conectado");
