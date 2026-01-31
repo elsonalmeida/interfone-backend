@@ -7,10 +7,8 @@ const chromium = require("chromium");
 const app = express();
 app.use(express.json());
 
-// Carrega lista de moradores
 const moradores = JSON.parse(fs.readFileSync("moradores.json", "utf8"));
 
-// Configura cliente WhatsApp usando chromium.path
 const client = new Client({
   authStrategy: new LocalAuth(),
   puppeteer: {
@@ -22,23 +20,19 @@ const client = new Client({
 
 let currentQr = null;
 
-// Evento para capturar QR Code
 client.on("qr", (qr) => {
   currentQr = qr;
   console.log("QR Code recebido");
 });
 
-// Evento quando o WhatsApp estiver pronto
 client.on("ready", () => {
   console.log("WhatsApp conectado!");
 });
 
-// Inicializa cliente
 client.initialize().catch(err => {
   console.error("Erro ao iniciar WhatsApp:", err);
 });
 
-// Rota para exibir QR Code como imagem
 app.get("/qrcode", async (req, res) => {
   if (!currentQr) {
     return res.status(404).send("QR Code não disponível");
@@ -59,7 +53,6 @@ app.get("/qrcode", async (req, res) => {
   }
 });
 
-// Rota para enviar mensagem
 app.post("/send", async (req, res) => {
   const { number, message } = req.body;
 
@@ -78,7 +71,6 @@ app.post("/send", async (req, res) => {
   }
 });
 
-// Rota chamada pelo HTML
 app.post("/chamar/:apto", async (req, res) => {
   const apto = req.params.apto;
   const numeroMorador = moradores[apto];
@@ -102,7 +94,6 @@ app.post("/chamar/:apto", async (req, res) => {
   }
 });
 
-// Rota de status
 app.get("/status", async (req, res) => {
   try {
     const state = await client.getState();
@@ -116,11 +107,29 @@ app.get("/status", async (req, res) => {
   }
 });
 
-// Rota de teste
+app.get("/state", async (req, res) => {
+  try {
+    const state = await client.getState();
+    res.send(`🧠 Estado atual do WhatsApp: ${state}`);
+  } catch (err) {
+    res.status(500).send("Erro ao obter estado do WhatsApp");
+  }
+});
+
+// 🔄 Rota para reiniciar o cliente WhatsApp
+app.get("/restart", async (req, res) => {
+  try {
+    await client.destroy();
+    await client.initialize();
+    res.send("🔁 Cliente WhatsApp reiniciado com sucesso");
+  } catch (err) {
+    res.status(500).send("Erro ao reiniciar cliente");
+  }
+});
+
 app.get("/", (req, res) => {
   res.send("Interfone coletivo rodando!");
 });
 
-// Porta dinâmica para Render
 const port = process.env.PORT || 3000;
 app.listen(port, () => console.log(`Servidor rodando na porta ${port}`));
