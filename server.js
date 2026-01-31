@@ -77,6 +77,17 @@ app.post("/send", async (req, res) => {
   }
 });
 
+// rota State
+app.get("/state", async (req, res) => {
+  try {
+    const state = await client.getState();
+    res.send(`🧠 Estado atual do WhatsApp: ${state}`);
+  } catch (err) {
+    res.status(500).send("Erro ao obter estado do WhatsApp");
+  }
+});
+
+// Rota Debug
 app.get("/debug", (req, res) => {
   res.json(client.info || { status: "não conectado" });
 });
@@ -117,4 +128,5 @@ app.get("/", (req, res) => {
 // Porta dinâmica para Render
 const port = process.env.PORT || 3000;
 app.listen(port, () => console.log(`Servidor rodando na porta ${port}`));
+
 
