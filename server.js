@@ -77,6 +77,10 @@ app.post("/send", async (req, res) => {
   }
 });
 
+app.get("/debug", (req, res) => {
+  res.json(client.info || { status: "não conectado" });
+});
+
 // Rota chamada pelo HTML
 app.post("/chamar/:apto", async (req, res) => {
   const apto = req.params.apto;
@@ -113,3 +117,4 @@ app.get("/", (req, res) => {
 // Porta dinâmica para Render
 const port = process.env.PORT || 3000;
 app.listen(port, () => console.log(`Servidor rodando na porta ${port}`));
+
