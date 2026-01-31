@@ -130,6 +130,21 @@ app.get("/state", async (req, res) => {
   }
 });
 
+app.get("/restart", async (req, res) => {
+  try {
+    addLog("🔄 Iniciando reinicialização do cliente WhatsApp...");
+    await client.destroy();
+    addLog("✅ Cliente destruído");
+    await client.initialize();
+    addLog("🚀 Cliente reinicializado");
+    res.send("🔁 Cliente WhatsApp reiniciado com sucesso");
+  } catch (err) {
+    addLog("❌ Erro ao reiniciar cliente: " + err.message);
+    res.status(500).send("Erro ao reiniciar cliente");
+  }
+});
+
+
 // 🔎 Nova rota para visualizar logs
 app.get("/logs", (req, res) => {
   res.send(`
@@ -148,3 +163,4 @@ app.get("/", (req, res) => {
 
 const port = process.env.PORT || 3000;
 app.listen(port, () => addLog(`Servidor rodando na porta ${port}`));
+
